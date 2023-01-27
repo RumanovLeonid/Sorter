@@ -1,4 +1,5 @@
 import cv2
+import datetime
 import os
 from pyzbar import pyzbar
 from glob import glob
@@ -29,15 +30,28 @@ def ScanQR():
            return data
     return 
 
+def DebounceScanQR(): 
+    while True:
+        start = datetime.datetime.now().second
+        
+        dataStart = ScanQR()
+        dataStop = dataStart
+
+        delta = datetime.datetime.now().second - start      
+       
+        if delta < 1 and (dataStart == dataStop): continue
+        elif dataStart is None: continue 
+        else:
+            return dataStart 
+
 LoadQRSample()
 
 
 cap = cv2.VideoCapture(0)
 detector = cv2.QRCodeDetector()
 while True:
-    data = ScanQR()
-    if data:
-        print("[+] QR Code detected, data:", data)
+    data = DebounceScanQR()
+    print("[+] QR Code detected, data:", data)
     #cv2.imshow("img", img)    
     if cv2.waitKey(1) == ord("q"):
         break
