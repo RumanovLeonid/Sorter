@@ -4,8 +4,9 @@ import time
 from glob import glob
 import cv2
 from pyzbar import pyzbar
+import keyboard
 
-
+SCAN_DELAY = 1
 QRdata = []
 
 
@@ -15,13 +16,12 @@ def getQr(filename):
     qrcodes = pyzbar.decode(img)  # Создается список найденных кодов
     for qrcode in qrcodes:
         qrcodeData = qrcode.data.decode('utf-8')
-        # if qrcode.type == 'QRCODE' in qrcodeData:  # проверяем тип кода и проверяем вхождение строки 'fn='
         all_data.append(qrcodeData.split('&'))
     return all_data
 
 
 def LoadQRSample(dir_path=os.path.dirname(os.path.realpath(__file__)) + "\\QRsample\\"):
-    for filename in glob('QRsample/*.jpg'):  # Считываем тип файлов только jpg
+    for filename in glob('QRsample/*.jpg'):
         QRdata.append(getQr(filename))
 
 
@@ -34,27 +34,10 @@ def ScanQR():
     return
 
 
-""" def DebounceScanQR():
-    while True:
-        start = datetime.datetime.now().second
-
-        dataStart = ScanQR()
-        # dataStop = dataStart
-
-        delta = datetime.datetime.now().second - start
-
-        if delta < 1 and (dataStart is not ScanQR):
-            continue
-        elif dataStart is None:
-            continue
-        else:
-            return dataStart """
-
-
 def DebounceScanQR():
     while True:
         scan = ScanQR()
-        time.sleep(1)
+        time.sleep(SCAN_DELAY)
         rescan = ScanQR()
 
         if (scan == rescan) and (scan != None):
@@ -66,11 +49,19 @@ LoadQRSample()
 
 cap = cv2.VideoCapture(0)
 detector = cv2.QRCodeDetector()
+
 while True:
+
     data = DebounceScanQR()
-    print("[+] QR Code detected, data:", data)
-    # cv2.imshow("img", img)
-    if cv2.waitKey(1) == ord("q"):
-        break
-cap.release()
-# cv2.destroyAllWindows()
+
+    match data:
+        case "Water":
+            print("Water")
+        case "Iron":
+            print("Iron")
+        case "Paper":
+            print("Paper")
+        case "Ribbon":
+            print("Ribbon")
+        case _:
+            print("Uknown")
